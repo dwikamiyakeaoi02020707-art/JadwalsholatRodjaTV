@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Display Masjid - Rodja Stream</title>
+    <title>Jadwal Sholat & Rodja TV (Sound On)</title>
     <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        /* --- CSS STYLING (SAMA SEPERTI SEBELUMNYA) --- */
+        /* --- 1. CSS STYLING --- */
         * { box-sizing: border-box; }
         body {
             margin: 0;
@@ -14,128 +14,143 @@
             background-color: #000;
             color: #fff;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            overflow: hidden;
+            overflow: hidden; /* Hilangkan scrollbar */
             height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
-        /* HEADER */
+        /* HEADER (Atas) */
         .header {
             background: linear-gradient(90deg, #0f2027, #203a43, #2c5364);
-            padding: 10px 20px;
+            padding: 0 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 4px solid #ffd700;
-            height: 100px;
+            border-bottom: 5px solid #ffd700;
+            height: 12vh; /* 12% dari tinggi layar */
             flex-shrink: 0;
         }
         .masjid-name {
-            font-size: 2rem;
+            font-size: 2.5vw; /* Ukuran font responsif */
             font-weight: bold;
             text-transform: uppercase;
             color: #ffd700;
             text-shadow: 2px 2px 4px #000;
         }
-        .date-container {
+        .date-info {
             text-align: right;
-            font-size: 1rem;
-            margin-right: 20px;
         }
         .clock-big {
-            font-size: 2.2rem;
+            font-size: 3vw;
             font-weight: bold;
             font-family: 'Courier New', Courier, monospace;
-            background: #000;
-            padding: 5px 15px;
-            border-radius: 8px;
-            border: 2px solid #333;
+            background: rgba(0,0,0,0.5);
+            padding: 5px 20px;
+            border-radius: 10px;
+            border: 2px solid #555;
+            margin-left: 20px;
         }
 
-        /* MAIN CONTENT */
+        /* MAIN CONTENT (Video) */
         .main-content {
             flex-grow: 1;
+            background: #000;
+            position: relative;
             display: flex;
             justify-content: center;
             align-items: center;
-            background: #111;
-            position: relative;
             overflow: hidden;
         }
         
-        /* Area Video */
-        .video-container {
+        .video-wrapper {
             width: 100%;
             height: 100%;
-            background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            position: relative;
         }
-        
+
         video {
             width: 100%;
             height: 100%;
-            object-fit: contain; /* Video pas di tengah */
+            object-fit: contain; /* Video pas di tengah tanpa gepeng */
         }
 
-        /* JADWAL SHOLAT BAR */
+        /* Tombol Overlay untuk Paksa Suara */
+        #overlay-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 99;
+            background: rgba(255, 0, 0, 0.8);
+            color: white;
+            padding: 20px 40px;
+            font-size: 2rem;
+            border: 2px solid white;
+            border-radius: 10px;
+            cursor: pointer;
+            display: none; /* Sembunyi default */
+            box-shadow: 0 0 20px rgba(255,0,0,0.5);
+        }
+        #overlay-btn:hover {
+            background: red;
+        }
+
+        /* FOOTER (Jadwal Sholat) */
         .jadwal-container {
             display: flex;
             justify-content: space-evenly;
             align-items: center;
             background: #082015;
-            padding: 10px 0;
-            border-top: 4px solid #ffd700;
-            height: 140px;
+            border-top: 5px solid #ffd700;
+            height: 18vh; /* 18% dari tinggi layar */
             flex-shrink: 0;
         }
 
         .waktu-sholat {
-            background: #000;
-            border: 2px solid #555;
-            border-radius: 10px;
-            width: 16%;
-            height: 100px;
+            background: linear-gradient(to bottom, #141e30, #243b55);
+            border: 2px solid #ffd700;
+            border-radius: 15px;
+            width: 15%;
+            height: 80%;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.6);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
         }
 
         .waktu-title {
-            font-size: 1.1rem;
+            font-size: 1.2vw;
             font-weight: bold;
             text-transform: uppercase;
-            color: #ccc;
+            color: #ddd;
             margin-bottom: 5px;
         }
 
         .waktu-jam {
-            font-size: 1.8rem;
+            font-size: 2.5vw;
             font-weight: bold;
-            font-family: 'Courier New', Courier, monospace;
             color: #ffd700;
+            font-family: 'Courier New', Courier, monospace;
         }
 
         /* RUNNING TEXT */
         .marquee-container {
             background: #000;
             color: #fff;
-            padding: 8px 0;
-            font-size: 1.1rem;
+            font-size: 1.5rem;
             white-space: nowrap;
             overflow: hidden;
             border-top: 1px solid #333;
-            height: 40px;
-            flex-shrink: 0;
+            height: 5vh;
+            display: flex;
+            align-items: center;
         }
         .marquee-content {
             display: inline-block;
             padding-left: 100%;
-            animation: marquee 25s linear infinite;
+            animation: marquee 30s linear infinite;
         }
         @keyframes marquee {
             0% { transform: translate(0, 0); }
@@ -147,20 +162,24 @@
 
     <div class="header">
         <div class="masjid-name">Masjid Nurul Iman</div>
-        <div class="date-container">
-            <div id="date-text">Senin, 1 Januari 2026</div>
-            <div id="hijri-text" style="font-size: 0.9rem; color: #aaa;">-- H</div>
+        <div style="display:flex; align-items:center;">
+            <div class="date-info">
+                <div id="date-text" style="font-size: 1.2vw;">Senin, 1 Januari 2026</div>
+                <div id="hijri-text" style="font-size: 1vw; color: #aaa;">-- Hijriah</div>
+            </div>
+            <div class="clock-big" id="realtime-clock">00:00:00</div>
         </div>
-        <div class="clock-big" id="realtime-clock">00:00:00</div>
     </div>
 
     <div class="main-content">
-        <div class="video-container">
-            <video id="videoFeed" autoplay muted playsinline></video>
+        <div class="video-wrapper">
+            <button id="overlay-btn" onclick="enableSound()">▶ KLIK UNTUK NYALAKAN SUARA</button>
+            
+            <video id="video" playsinline controls></video>
         </div>
     </div>
 
-    <div class="jadwal-container" id="jadwal-list">
+    <div class="jadwal-container">
         <div class="waktu-sholat" id="sholat-subuh">
             <div class="waktu-title">Subuh</div>
             <div class="waktu-jam">--:--</div>
@@ -185,16 +204,17 @@
 
     <div class="marquee-container">
         <div class="marquee-content">
-            Selamat Datang di Masjid Nurul Iman. Saksikan siaran langsung Rodja TV. Mohon luruskan shaf sebelum sholat dimulai.
+            Selamat Datang di Masjid Nurul Iman Balikpapan. Mohon nonaktifkan HP. Luruskan dan rapatkan shaf. Saksikan Siaran Langsung Rodja TV.
         </div>
     </div>
 
     <script>
-        // --- JAM DIGITAL ---
+        // --- SCRIPT 1: JAM DIGITAL & TANGGAL ---
         function updateClock() {
             const now = new Date();
             const timeString = now.toLocaleTimeString('id-ID', { hour12: false });
             const dateString = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            
             document.getElementById('realtime-clock').innerText = timeString;
             document.getElementById('date-text').innerText = dateString;
             document.getElementById('hijri-text').innerText = "1 Rajab 1447 H (Simulasi)";
@@ -202,60 +222,79 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // --- STREAMING PLAYER CONFIG (HLS) ---
-        // Browser tidak bisa baca rtmp://, jadi kita ubah ke http://.../playlist.m3u8
-        // Biasanya server RTMP otomatis menyediakan output HLS di port yang sama.
-        
-        // OPSI 1: Link konversi dari IP yang kamu kasih (Semoga servernya open HLS)
-        // const streamURL = "http://103.18.232.146/rodjatv/live/playlist.m3u8"; 
-        
-        // OPSI 2: Link HLS Public Rodja TV (Paling Stabil buat Web)
-        // Kalau link IP kamu tidak jalan, pakai link official ini:
-        const streamURL = "https://stream.rodja.tv/rodjatv/live/playlist.m3u8"; 
+        // --- SCRIPT 2: VIDEO STREAMING HLS (DENGAN SUARA) ---
+        var video = document.getElementById('video');
+        var overlayBtn = document.getElementById('overlay-btn');
+        // URL Sesuai request (Rodja TV HLS)
+        var videoSrc = 'https://rodjatv.com/rodjatv/live.m3u8';
 
-        const video = document.getElementById('videoFeed');
-
-        if (Hls.isSupported()) {
-            const hls = new Hls();
-            hls.loadSource(streamURL);
-            hls.attachMedia(video);
-            hls.on(Hls.Events.MANIFEST_PARSED, function() {
-                video.play().catch(e => console.log("Autoplay dicegah browser, perlu interaksi user first."));
-            });
-            // Handle error kalau stream mati
-            hls.on(Hls.Events.ERROR, function (event, data) {
-                if (data.fatal) {
-                    console.log("Stream Error, mencoba reconnect...");
-                    hls.startLoad();
-                }
-            });
-        }
-        // Fallback untuk Safari (support Native HLS)
-        else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            video.src = streamURL;
-            video.addEventListener('loadedmetadata', function() {
-                video.play();
-            });
+        function startStream() {
+            if (Hls.isSupported()) {
+                var hls = new Hls();
+                hls.loadSource(videoSrc);
+                hls.attachMedia(video);
+                hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                    attemptPlay();
+                });
+                // Auto restart jika error network
+                hls.on(Hls.Events.ERROR, function (event, data) {
+                    if (data.fatal) {
+                        hls.startLoad();
+                    }
+                });
+            }
+            else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                video.src = videoSrc;
+                video.addEventListener('loadedmetadata', function() {
+                    attemptPlay();
+                });
+            }
         }
 
-        // --- JADWAL SHOLAT (DATA DUMMY BALIKPAPAN) ---
-        async function getJadwalSholat() {
-            const jadwalBalikpapan = {
-                subuh: "04:58",
-                dzuhur: "12:28",
-                ashar: "15:49",
-                maghrib: "18:33",
-                isya: "19:45"
-            };
+        // Fungsi mencoba play dengan suara
+        function attemptPlay() {
+            // Pastikan tidak dimute
+            video.muted = false; 
             
-            document.querySelector('#sholat-subuh .waktu-jam').innerText = jadwalBalikpapan.subuh;
-            document.querySelector('#sholat-dzuhur .waktu-jam').innerText = jadwalBalikpapan.dzuhur;
-            document.querySelector('#sholat-ashar .waktu-jam').innerText = jadwalBalikpapan.ashar;
-            document.querySelector('#sholat-maghrib .waktu-jam').innerText = jadwalBalikpapan.maghrib;
-            document.querySelector('#sholat-isya .waktu-jam').innerText = jadwalBalikpapan.isya;
+            var playPromise = video.play();
+
+            if (playPromise !== undefined) {
+                playPromise.then(_ => {
+                    // Berhasil play dengan suara
+                    console.log("Video bermain dengan suara.");
+                    overlayBtn.style.display = "none";
+                })
+                .catch(error => {
+                    // Browser memblokir autoplay bersuara
+                    console.log("Autoplay block detected.");
+                    // Tampilkan tombol besar agar user meng-klik
+                    overlayBtn.style.display = "block";
+                });
+            }
         }
 
-        getJadwalSholat();
+        // Fungsi dipanggil saat tombol merah diklik
+        function enableSound() {
+            video.muted = false;
+            video.play();
+            overlayBtn.style.display = "none";
+        }
+
+        // Mulai Video
+        startStream();
+
+        // --- SCRIPT 3: JADWAL SHOLAT (DATA MANUAL BALIKPAPAN) ---
+        // Karena API Kemenag butuh token dinamis, kita pakai data statis/estimasi dulu agar tampil.
+        function setJadwal() {
+            // Data Estimasi Balikpapan (Bisa diedit manual di sini)
+            document.querySelector('#sholat-subuh .waktu-jam').innerText = "04:58";
+            document.querySelector('#sholat-dzuhur .waktu-jam').innerText = "12:28";
+            document.querySelector('#sholat-ashar .waktu-jam').innerText = "15:49";
+            document.querySelector('#sholat-maghrib .waktu-jam').innerText = "18:33";
+            document.querySelector('#sholat-isya .waktu-jam').innerText = "19:45";
+        }
+        setJadwal();
+
     </script>
 </body>
 </html>
