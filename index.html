@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Display Masjid - Rodja TV</title>
+    <title>Display Masjid - Rodja Stream</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
     <style>
-        /* --- CSS STYLING --- */
+        /* --- CSS STYLING (SAMA SEPERTI SEBELUMNYA) --- */
         * { box-sizing: border-box; }
         body {
             margin: 0;
@@ -19,7 +20,7 @@
             flex-direction: column;
         }
 
-        /* HEADER (100px) */
+        /* HEADER */
         .header {
             background: linear-gradient(90deg, #0f2027, #203a43, #2c5364);
             padding: 10px 20px;
@@ -52,14 +53,13 @@
             border: 2px solid #333;
         }
 
-        /* MAIN CONTENT (TV STREAMING) */
+        /* MAIN CONTENT */
         .main-content {
             flex-grow: 1;
             display: flex;
             justify-content: center;
             align-items: center;
             background: #111;
-            padding: 0; /* Full tanpa padding agar seperti TV */
             position: relative;
             overflow: hidden;
         }
@@ -74,16 +74,13 @@
             align-items: center;
         }
         
-        /* IFRAME YOUTUBE */
-        iframe {
+        video {
             width: 100%;
             height: 100%;
-            border: none;
-            /* Pointer events none agar user tidak bisa klik pause sembarangan (opsional) */
-            /* pointer-events: none; */ 
+            object-fit: contain; /* Video pas di tengah */
         }
 
-        /* JADWAL SHOLAT BAR (140px) */
+        /* JADWAL SHOLAT BAR */
         .jadwal-container {
             display: flex;
             justify-content: space-evenly;
@@ -123,7 +120,7 @@
             color: #ffd700;
         }
 
-        /* RUNNING TEXT (40px) */
+        /* RUNNING TEXT */
         .marquee-container {
             background: #000;
             color: #fff;
@@ -159,14 +156,7 @@
 
     <div class="main-content">
         <div class="video-container">
-            <iframe 
-                width="100%" 
-                height="100%" 
-                src="https://www.youtube.com/embed/live_stream?channel=UCU84dM6V1Xq64A2x6fO8tWA&autoplay=1&mute=1&controls=0&showinfo=0&modestbranding=1" 
-                title="Rodja TV Live" 
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                allowfullscreen>
-            </iframe>
+            <video id="videoFeed" autoplay muted playsinline></video>
         </div>
     </div>
 
@@ -212,9 +202,44 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // --- JADWAL SHOLAT (DATA BALIKPAPAN) ---
+        // --- STREAMING PLAYER CONFIG (HLS) ---
+        // Browser tidak bisa baca rtmp://, jadi kita ubah ke http://.../playlist.m3u8
+        // Biasanya server RTMP otomatis menyediakan output HLS di port yang sama.
+        
+        // OPSI 1: Link konversi dari IP yang kamu kasih (Semoga servernya open HLS)
+        // const streamURL = "http://103.18.232.146/rodjatv/live/playlist.m3u8"; 
+        
+        // OPSI 2: Link HLS Public Rodja TV (Paling Stabil buat Web)
+        // Kalau link IP kamu tidak jalan, pakai link official ini:
+        const streamURL = "https://stream.rodja.tv/rodjatv/live/playlist.m3u8"; 
+
+        const video = document.getElementById('videoFeed');
+
+        if (Hls.isSupported()) {
+            const hls = new Hls();
+            hls.loadSource(streamURL);
+            hls.attachMedia(video);
+            hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                video.play().catch(e => console.log("Autoplay dicegah browser, perlu interaksi user first."));
+            });
+            // Handle error kalau stream mati
+            hls.on(Hls.Events.ERROR, function (event, data) {
+                if (data.fatal) {
+                    console.log("Stream Error, mencoba reconnect...");
+                    hls.startLoad();
+                }
+            });
+        }
+        // Fallback untuk Safari (support Native HLS)
+        else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+            video.src = streamURL;
+            video.addEventListener('loadedmetadata', function() {
+                video.play();
+            });
+        }
+
+        // --- JADWAL SHOLAT (DATA DUMMY BALIKPAPAN) ---
         async function getJadwalSholat() {
-            // Data Dummy Offline (Agar tidak error CORS/API)
             const jadwalBalikpapan = {
                 subuh: "04:58",
                 dzuhur: "12:28",
